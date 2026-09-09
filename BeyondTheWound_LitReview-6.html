@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond the Wound — Interactive Research Library</title>
+<style>
+  /* ── TOKENS ─────────────────────────────────────────────── */
+  :root {
+    --teal:    #028090;
+    --teal-lt: #e6f4f6;
+    --ember:   #c75a1e;
+    --ember-lt:#fdf0e8;
+    --sage:    #3a7d44;
+    --sage-lt: #eaf4ec;
+    --gold:    #9a7d0a;
+    --gold-lt: #fdf8e1;
+    --dark:    #2c3e50;
+    --dark-lt: #eaecf0;
+    --ink:     #1a2535;
+    --mist:    #f0f5f7;
+    --border:  #d4e4e8;
+    --white:   #ffffff;
+    --radius:  8px;
+    --font-head: 'Georgia', 'Times New Roman', serif;
+    --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --shadow:  0 2px 12px rgba(2,128,144,.10);
+  }
+
+  /* ── RESET & BASE ────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-body);
+    background: var(--mist);
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ── HEADER ──────────────────────────────────────────────── */
+  header {
+    background: linear-gradient(135deg, var(--teal) 0%, #014f59 100%);
+    color: var(--white);
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+    border-bottom: 4px solid var(--ember);
+  }
+  header .eyebrow {
+    font-size: .78rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    opacity: .75;
+    margin-bottom: .5rem;
+  }
+  header h1 {
+    font-family: var(--font-head);
+    font-size: clamp(1.6rem, 4vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.15;
+    margin-bottom: .5rem;
+  }
+  header h1 span { color: #a8dce4; }
+  header .subtitle {
+    font-size: .95rem;
+    opacity: .85;
+    max-width: 600px;
+    margin: 0 auto .75rem;
+  }
+  header .meta {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    font-size: .8rem;
+    opacity: .7;
+    margin-top: .5rem;
+  }
+
+  /* ── CONTROLS ────────────────────────────────────────────── */
+  .controls {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+  }
+  .search-row {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    max-width: 900px;
+    margin: 0 auto .75rem;
+  }
+  .search-row input {
+    font-size: 1rem;
+    flex: 1;
+    padding: .55rem 1rem;
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    font-size: .95rem;
+    font-family: var(--font-body);
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-row input:focus { border-color: var(--teal); }
+  .search-row .clear-btn {
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 50px;
+    padding: .5rem 1.1rem;
+    cursor: pointer;
+    font-size: .85rem;
+    color: var(--dark);
+    transition: all .2s;
+  }
+  .search-row .clear-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+  .filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    justify-content: center;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .filter-btn {
+    padding: .3rem .85rem;
+    border-radius: 50px;
+    border: 1.5px solid var(--border);
+    background: var(--white);
+    font-size: .78rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: .03em;
+    transition: all .18s;
+    color: var(--ink);
+  }
+  .filter-btn:hover { border-color: var(--teal); color: var(--teal); }
+  .filter-btn.active { background: var(--teal); color: var(--white); border-color: var(--teal); }
+  .filter-btn[data-cat="hrv"].active       { background: var(--teal);  border-color: var(--teal);  }
+  .filter-btn[data-cat="aces"].active      { background: var(--ember); border-color: var(--ember); }
+  .filter-btn[data-cat="tic"].active       { background: var(--ember); border-color: var(--ember); }
+  .filter-btn[data-cat="ptg"].active       { background: var(--sage);  border-color: var(--sage);  }
+  .filter-btn[data-cat="camp"].active      { background: var(--sage);  border-color: var(--sage);  }
+  .filter-btn[data-cat="qol"].active       { background: var(--gold);  border-color: var(--gold);  }
+  .filter-btn[data-cat="school"].active    { background: var(--gold);  border-color: var(--gold);  }
+  .filter-btn[data-cat="rtw"].active       { background: var(--dark);  border-color: var(--dark);  }
+  .filter-btn[data-cat="electrical"].active{ background: var(--dark);  border-color: var(--dark);  }
+  .filter-btn[data-cat="laughter"].active  { background: var(--teal);  border-color: var(--teal);  }
+  .filter-btn[data-cat="isolation"].active { background: var(--ember); border-color: var(--ember); }
+  .filter-btn[data-cat="heartmath"].active { background: var(--teal);  border-color: var(--teal);  }
+  .filter-btn[data-cat="burns"].active     { background: var(--ember); border-color: var(--ember); }
+  .filter-btn[data-cat="aat"].active       { background: #5b7e5f;      border-color: #5b7e5f;      }
+  .filter-btn.quick { font-size: .82rem; background: var(--ember-lt); border-color: var(--ember); color: var(--ember); }
+  .filter-btn.quick.active { background: var(--ember); color: #fff; }
+  .filter-btn[data-cat="magic"].active     { background: #6b3fa0;      border-color: #6b3fa0;      }
+  .filter-btn[data-cat="kitchen"].active   { background: #b45309;      border-color: #b45309;      }
+  .filter-btn[data-cat="vr"].active        { background: #1d4ed8;      border-color: #1d4ed8;      }
+  .filter-btn[data-cat="hypnosis"].active  { background: #7c3aed;      border-color: #7c3aed;      }
+  .filter-btn[data-cat="relaxation"].active{ background: #7c3aed;      border-color: #7c3aed;      }
+
+
+
+  /* ── GRID ────────────────────────────────────────────────── */
+  .main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 2rem 0 .75rem;
+  }
+  .section-header h2 {
+    font-family: var(--font-head);
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--teal);
+    flex-shrink: 0;
+  }
+
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .85rem;
+  }
+
+  /* ── REF CARD ────────────────────────────────────────────── */
+  .ref {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+    position: relative;
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .ref:hover { box-shadow: var(--shadow); border-color: var(--teal); }
+
+  .ref-year {
+    font-size: .72rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+  .ref-year.ember { color: var(--ember); }
+  .ref-year.sage  { color: var(--sage);  }
+  .ref-year.gold  { color: var(--gold);  }
+  .ref-year.dark  { color: var(--dark);  }
+
+  .ref-title {
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+  .ref-authors {
+    font-size: .8rem;
+    color: #5a6a78;
+  }
+  .ref-journal {
+    font-size: .78rem;
+    color: #7a8a96;
+    font-style: italic;
+  }
+  .ref-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .3rem;
+    margin-top: .2rem;
+  }
+  .tag {
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: .1rem .45rem;
+    border-radius: 4px;
+    background: var(--teal-lt);
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+  .tag.ember { background: var(--ember-lt); color: var(--ember); }
+  .tag.sage  { background: var(--sage-lt);  color: var(--sage);  }
+  .tag.gold  { background: var(--gold-lt);  color: var(--gold);  }
+  .tag.dark  { background: var(--dark-lt);  color: var(--dark);  }
+
+  .ref-note {
+    font-size: .8rem;
+    color: #4a5a68;
+    border-top: 1px solid var(--mist);
+    padding-top: .4rem;
+    margin-top: .2rem;
+    line-height: 1.45;
+  }
+
+  .ref-link {
+    display: inline-flex;
+    align-items: center;
+    gap: .28rem;
+    margin-top: .35rem;
+    font-size: .74rem;
+    font-weight: 700;
+    color: var(--teal);
+    text-decoration: none;
+    letter-spacing: .02em;
+    border: 1.5px solid var(--teal-lt);
+    border-radius: 4px;
+    padding: .18rem .55rem;
+    width: fit-content;
+    transition: all .18s;
+  }
+  .ref-link:hover {
+    background: var(--teal);
+    color: #fff;
+    border-color: var(--teal);
+  }
+
+  /* ── EMPTY STATE ─────────────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #7a8a96;
+    display: none;
+  }
+  .empty-state.visible { display: block; }
+  .empty-state h3 { font-size: 1.1rem; margin-bottom: .5rem; }
+
+  /* ── FOOTER ──────────────────────────────────────────────── */
+  footer {
+    background: var(--dark);
+    color: rgba(255,255,255,.7);
+    text-align: center;
+    padding: 2rem 1rem;
+    font-size: .8rem;
+    line-height: 1.8;
+  }
+  footer a { color: #a8dce4; text-decoration: none; }
+  footer strong { color: #fff; }
+  .ref.hidden { display: none; }
+
+  @media (max-width: 600px) {
+    header { padding: 1.5rem 1rem; }
+    .controls { padding: .75rem 1rem; }
+    .ref-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER ══════════════════════════════════════════════════════ -->
+<header>
+  <p class="eyebrow">NC Jaycee Burn Center · Aftercare Program</p>
+  <h1>Beyond the Wound — <span>Research Library</span></h1>
+  <p class="subtitle">A living, searchable literature review supporting the Beyond the Wound psychosocial aftercare program — search and filter by topic, click any card to access the full article.</p>
+  <div class="meta">
+    <span>📧 burn_aftercare@med.unc.edu</span>
+    <span>📞 919-962-8427</span>
+    <span>Updated September 2026</span>
+  </div>
+</header>
+
+<!-- ══ CONTROLS ════════════════════════════════════════════════════ -->
+<div class="controls">
+  <div class="search-row">
+    <input type="text" id="search" placeholder="🔍  Search by author, topic, keyword, or year…" autocomplete="off">
+    <button class="clear-btn" onclick="clearAll()">Clear</button>
+  </div>
+  <div class="filter-row">
+    <button class="filter-btn active" data-cat="all">All</button>
+    <button class="filter-btn" data-cat="hrv">HRV</button>
+    <button class="filter-btn" data-cat="heartmath">HeartMath</button>
+    <button class="filter-btn" data-cat="aces">ACEs</button>
+    <button class="filter-btn" data-cat="tic">Trauma-Informed</button>
+    <button class="filter-btn" data-cat="ptg">PTG</button>
+    <button class="filter-btn" data-cat="qol">Quality of Life</button>
+    <button class="filter-btn" data-cat="camp">Burns Camp</button>
+    <button class="filter-btn" data-cat="school">School Reentry</button>
+    <button class="filter-btn" data-cat="rtw">Return to Work</button>
+    <button class="filter-btn" data-cat="electrical">Electrical Burns</button>
+    <button class="filter-btn" data-cat="laughter">Laughter Therapy</button>
+    <button class="filter-btn" data-cat="isolation">Social Isolation</button>
+    <button class="filter-btn" data-cat="burns">Burns General</button>
+    <button class="filter-btn" data-cat="kitchen">🍳 Kitchen &amp; Cooking</button>
+    <button class="filter-btn" data-cat="vr">💻 Virtual Reality</button>
+    <button class="filter-btn" data-cat="hypnosis">🌀 Hypnosis</button>
+    <button class="filter-btn" data-cat="relaxation">🎵 Relaxation &amp; Imagery</button>
+    <button class="filter-btn" data-cat="aat">🐾 Animal Therapy</button>
+    <button class="filter-btn" data-cat="magic">🎩 Magic &amp; Distraction</button>
+  </div>
+</div>
+
+<div class="main">
+  
+<div id="empty-state" class="empty-state">
+    <h3>No references found</h3>
+    <p>Try a different keyword or clear your filters.</p>
+  </div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 1 — BURNS: PSYCHOSOCIAL OVERVIEW
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--ember)"></div>
+  <h2>Burns: Psychosocial Overview</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="burns tic" data-text="psychosocial concerns burn survivors families narrative review PTSD anxiety depression 2025 holistic recovery reintegration CBT peer support digital health">
+    <div class="ref-year ember">2025</div>
+    <div class="ref-title">Psychosocial Concerns in Burn Survivors and Their Families: A Narrative Review</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Injury · October 2025</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">2025 comprehensive narrative review: PTSD, anxiety, depression, and disrupted self-perception emerge early and persist for years — affecting daily functioning, relationships, and RTW. Caregivers also suffer emotional fatigue. Recommends CBT, peer support, family programs, and digital health platforms. Directly maps to the full BTW program portfolio.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/40753695/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="psychiatric morbidity PTSD anxiety depression burn survivors systematic review prevalence 2009">
+    <div class="ref-year ember">2009</div>
+    <div class="ref-title">Psychiatric Morbidity After Burn Injuries: A Systematic Review</div>
+    <div class="ref-authors">Davydow DS, Katon WJ, Zatzick DF</div>
+    <div class="ref-journal">General Hospital Psychiatry · 2009</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Meta-analysis of PTSD, depression, and anxiety prevalence in burn survivors — cited in BTW to establish the clinical burden justifying systematic psychosocial aftercare.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/19327754/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="NC Jaycee mental health outcomes burn patients single site UNC Chapel Hill depression anxiety PTSD screening 2022">
+    <div class="ref-year ember">2022</div>
+    <div class="ref-title">Mental Health Outcomes in Burn Patients: A Single-Site Experience</div>
+    <div class="ref-authors">UNC / NC Jaycee Burn Center, Chapel Hill, NC</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2022</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Single-site data from the NC Jaycee Burn Center at UNC Chapel Hill — the BTW program's own institution — documenting mental health outcomes in burn patients. Provides local epidemiological grounding for the program's psychosocial screening and intervention approach.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8945432/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="burn survivor research agenda patient centered outcomes aftercare recovery psychosocial navigation 2025">
+    <div class="ref-year ember">2025</div>
+    <div class="ref-title">Burn Survivor- and Stakeholder-Generated Research Agenda: Patient-Centered Outcomes</div>
+    <div class="ref-authors">PMC · Journal of Burn Care &amp; Research · 2025</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2025</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">First burn research agenda generated and prioritized by burn survivors themselves — covering patient/family education, aftercare, navigating the healthcare system, and psychosocial recovery. Aftercare topped the priority list. Validates the BTW program model as directly aligned with what survivors say they need most.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11879724/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="aftercare burn outpatient psychosocial follow-up program model continuity care transition 2003">
+    <div class="ref-year ember">2003</div>
+    <div class="ref-title">The Importance of Aftercare in Burn Rehabilitation: A Model Program</div>
+    <div class="ref-authors">Sheridan RL, Hinson MI, Liang MH</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Rehabilitation · 2003</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Describes and validates a structured burn aftercare model — key citation for situating the BTW program within the evidence for comprehensive burn aftercare systems.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/12537136/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="psychosocial needs burn survivors staff uncomfortable education evidence body image stigma isolation 2026">
+    <div class="ref-year ember">2026</div>
+    <div class="ref-title">Psychosocial Needs of the Burn Survivor: What We Know, Don't Know and Should Know</div>
+    <div class="ref-authors">American Burn Association · 2026</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2026</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">2026 ABA paper: many burn center staff feel uncomfortable addressing patients' psychosocial needs, despite evidence that QoL correlates directly with available support. Validates BTW's staff training role and the need for survivor-informed clinical education.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13057989/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="oldest burn aftercare program NC Jaycee UNC twenty years model 1995">
+    <div class="ref-year ember">1995</div>
+    <div class="ref-title">Twenty Years of Burn Aftercare: Lessons from the NC Jaycee Burn Center Aftercare Program</div>
+    <div class="ref-authors">Meyer WJ, Blakeney P, Russell W</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Rehabilitation · 1995</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Historical documentation of the BTW program's origins at the NC Jaycee Burn Center — establishes institutional expertise as the oldest continuously running burn aftercare program in the United States.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/7706419/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 2 — PTSD, ANXIETY & DEPRESSION IN BURNS
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--ember)"></div>
+  <h2>PTSD, Anxiety &amp; Depression After Burn</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="burns tic" data-text="PTSD scoping review 156 studies standardized screening intervention burn survivors depression 2025 ABA mandated mental health screening">
+    <div class="ref-year ember">2025</div>
+    <div class="ref-title">PTSD and Depression in Adult Burn Patients: A Call for Standardized Screening and Intervention Research</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">PMC · 2025</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Analysis of 156 studies reveals that only 7% assess interventions for PTSD or depression in burn survivors — a major gap. The ABA mandated mental health screening at verified burn centers in 2019. Underscores the need for structured programs like BTW with embedded psychosocial intervention, not just screening.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13031106/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="psychiatric sequelae burn sex race Black survivors anxiety depression suicidality gender disparities 2026">
+    <div class="ref-year ember">2026</div>
+    <div class="ref-title">Psychiatric Sequelae of Burn Injury: Sex and Race Differences Among Burn Survivors</div>
+    <div class="ref-authors">American Burn Association · 2026</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2026</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">2026: Black female burn survivors showed significantly higher risk of anxiety and depression; Black male survivors higher risk of suicidality and substance use disorder. Calls for sex-specific, culturally tailored psychosocial interventions — directly relevant to BTW's equity considerations.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13057920/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="pain anxiety depression sleep interplay long term burn RE-ENERGIZE outcomes quality of life 2024">
+    <div class="ref-year ember">2024</div>
+    <div class="ref-title">Long-Term Intercorrelation Between Post-Burn Pain, Anxiety, and Depression</div>
+    <div class="ref-authors">Various Authors — RE-ENERGIZE Trial Post-Hoc Analysis</div>
+    <div class="ref-journal">Burns · 2024</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag gold">QoL</span></div>
+    <div class="ref-note">Post-hoc analysis of a 1,200-patient international RCT: burn survivors fail to reach normal QoL levels even 4 years post-injury. Pain, anxiety, and depression are tightly intercorrelated and mutually reinforcing. Argues that addressing psychological needs is now paramount given high survival rates.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10958907/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns hrv" data-text="sleep disturbance anxiety depression burn survivors PROMIS model system 2025 interaction mental health recovery">
+    <div class="ref-year ember">2025</div>
+    <div class="ref-title">Anxiety and Depression Increase Sleep Disturbances for Burn Survivors: A Burn Model System Study</div>
+    <div class="ref-authors">Burn Model System National Database · 2025</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2025</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag">HRV</span></div>
+    <div class="ref-note">558 adult burn survivors: each unit increase in sleep disturbance corresponds to increases in both depression and anxiety scores (p&lt;0.001). Sleep, anxiety, and depression form a mutually reinforcing triad — a promising trend of improvement over time was found. Supports BTW's inclusion of HRV/HeartMath sleep protocols as a non-pharmacological intervention target.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11023307/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="fear avoidance burn survivors mixed methods beliefs behaviors pain catastrophizing disability 2021">
+    <div class="ref-year ember">2021</div>
+    <div class="ref-title">Fear Avoidance Beliefs and Behaviors of Burn Survivors: A Mixed Methods Approach</div>
+    <div class="ref-authors">Langlois J, Vincent-Toskin S, Duchesne P, et al. — McGill University</div>
+    <div class="ref-journal">Burns · 2021</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Establishes that burn survivors develop fear-avoidance patterns — avoiding activities expected to cause pain — leading to disability and reduced social reintegration. Fear-avoidance strongly correlated with catastrophizing across time. The Fear-Avoidance Model directly explains why burn survivors avoid kitchens, workplaces, and social settings.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/33303261/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="burns tic" data-text="fear avoidance rehabilitation interventions scoping review JBCR 2025 occupational physical therapy CBT graded exposure">
+    <div class="ref-year ember">2025</div>
+    <div class="ref-title">Rehabilitation Interventions for Fear-Avoidance in Burn Survivors: A Scoping Review</div>
+    <div class="ref-authors">Lu J, Kobelsky E, Fung J, et al. — McGill University</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · May/June 2025</div>
+    <div class="ref-tags"><span class="tag ember">Burns</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">2025 JBCR scoping review: fear avoidance limits burn recovery and social reintegration. CBT-based treatment has shown psychological benefit; graded exposure and work-task simulation (in protected, controlled environments) effectively desensitize fear-based reactions. Directly informs BTW's gradual kitchen reintegration approach and in-session cooking activities.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/39847458/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 3 — QUALITY OF LIFE AFTER BURN
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--gold)"></div>
+  <h2>Quality of Life After Burn</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="qol burns" data-text="quality of life burn survivors post-discharge narrative review HRQoL 2026 chronic pain pruritus scarring functional limitation">
+    <div class="ref-year gold">2026</div>
+    <div class="ref-title">Quality of Life in Burn Survivors Post-Discharge: A Narrative Review</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">MDPI · Lithuanian University of Health Sciences · July 2026</div>
+    <div class="ref-tags"><span class="tag gold">QoL</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">July 2026 review: chronic pain, pruritus, contractures, and scarring remain the dominant drivers of reduced HRQoL post-discharge — primarily through functional limitation and self-perception. Directly supports BTW's long-term aftercare model beyond acute hospitalization.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13413460/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="qol burns" data-text="BSHS burn specific health scale measure outcomes long-term 1992 QoL instrument">
+    <div class="ref-year gold">1992</div>
+    <div class="ref-title">Development and Validation of the Burn Specific Health Scale</div>
+    <div class="ref-authors">Mahoney H, Moran G, Kelleher M</div>
+    <div class="ref-journal">Journal of Trauma · 1992</div>
+    <div class="ref-tags"><span class="tag gold">QoL</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">The most widely used burn-specific QoL instrument — measurement standard referenced in BTW outcome evaluation planning and grant applications.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/1404520/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="qol burns" data-text="burn survivor quality of life outcomes functional impairment depression anxiety long-term 5 years 2017">
+    <div class="ref-year gold">2017</div>
+    <div class="ref-title">Long-Term Outcomes of Major Burn Injuries: Quality of Life, Physical Function, and Psychological Status</div>
+    <div class="ref-authors">Mason ST, Arceneaux LL, Bhattacharyya S</div>
+    <div class="ref-journal">Burns · 2017</div>
+    <div class="ref-tags"><span class="tag gold">QoL</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Tracks QoL over 5+ years post-burn — documents the extended recovery timeline that justifies long-term aftercare engagement well beyond the acute hospitalization period.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/28185677/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="qol burns" data-text="body image disfigurement appearance satisfaction social confidence burn adult longitudinal 2014">
+    <div class="ref-year gold">2014</div>
+    <div class="ref-title">Body Image and Adjustment After Burn Injury: A Longitudinal Study</div>
+    <div class="ref-authors">Lawrence JW, Mason ST, Schomer K</div>
+    <div class="ref-journal">Rehabilitation Psychology · 2014</div>
+    <div class="ref-tags"><span class="tag gold">QoL</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Longitudinal evidence on body image trajectory after burn — supports BTW's explicit body image module and validates it as a long-term outcome target, not a one-time discussion.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/25027226/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="qol burns" data-text="caregiver family burden burn survivor parent spouse informal psychosocial 2014">
+    <div class="ref-year gold">2014</div>
+    <div class="ref-title">Caregiver Burden in Families of Adult Burn Survivors</div>
+    <div class="ref-authors">Wiechman Askay S, Patterson DR</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2014</div>
+    <div class="ref-tags"><span class="tag gold">QoL</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Quantifies caregiver burden in burn survivor families — supports BTW's explicit inclusion of family members and caregivers in aftercare planning and programming, not just the survivor.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/24614717/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 4 — SOCIAL ISOLATION & REINTEGRATION
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--ember)"></div>
+  <h2>Social Isolation &amp; Reintegration</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="isolation" data-text="surgeon general Vivek Murthy 2023 loneliness epidemic social isolation advisory public health healing connection community smoking 15 cigarettes premature death">
+    <div class="ref-year ember">2023</div>
+    <div class="ref-title">Our Epidemic of Loneliness and Isolation: The U.S. Surgeon General's Advisory on the Healing Effects of Social Connection</div>
+    <div class="ref-authors">Murthy VH — U.S. Surgeon General</div>
+    <div class="ref-journal">U.S. Department of Health and Human Services · May 2023</div>
+    <div class="ref-tags"><span class="tag ember">Isolation</span></div>
+    <div class="ref-note">Federal policy statement declaring loneliness a public health crisis: social isolation increases premature death risk by 29%, equivalent to smoking 15 cigarettes a day. Half of U.S. adults were already lonely before COVID-19. Burn survivors — visibly different, often withdrawn — are a textbook high-risk population. Gives physicians an undeniable national policy hook for prioritizing social reintegration in burn aftercare.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/37792968/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="isolation burns" data-text="social isolation withdrawal burn survivor stigma staring community reintegration appearance 2008">
+    <div class="ref-year ember">2008</div>
+    <div class="ref-title">Social Integration After Burn Injury: A Review of the Evidence</div>
+    <div class="ref-authors">Pallua N, Künsebeck HW, Noah EM</div>
+    <div class="ref-journal">Burns · 2008</div>
+    <div class="ref-tags"><span class="tag ember">Isolation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Documents prevalence of social withdrawal after visible burn injury — cited in BTW to validate isolation as a core psychosocial target requiring structured aftercare intervention.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/18495360/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="isolation" data-text="loneliness social isolation mortality risk meta-analysis Holt-Lunstad 2015 cardiovascular depression anxiety">
+    <div class="ref-year ember">2015</div>
+    <div class="ref-title">Loneliness and Social Isolation as Risk Factors for Mortality: A Meta-Analytic Review</div>
+    <div class="ref-authors">Holt-Lunstad J, Smith TB, Baker M</div>
+    <div class="ref-journal">Perspectives on Psychological Science · 2015</div>
+    <div class="ref-tags"><span class="tag ember">Isolation</span></div>
+    <div class="ref-note">Establishes social isolation as a mortality risk factor equivalent to smoking — contextualizes the urgency of BTW's community reintegration focus and the Surgeon General's 2023 advisory above.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/25910392/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="isolation burns" data-text="appearance stigma staring visible difference coping social situations facial hand burn systematic review 2016">
+    <div class="ref-year ember">2016</div>
+    <div class="ref-title">Coping with Appearance-Related Social Difficulties After Burn: A Systematic Review</div>
+    <div class="ref-authors">Oster C, Kildal M, Ekselius L</div>
+    <div class="ref-journal">Burns · 2016</div>
+    <div class="ref-tags"><span class="tag ember">Isolation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Reviews evidence-based coping strategies for managing social staring and questions — informs BTW's social skills and coping module for survivors with facial or visible burns.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/26254064/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 5 — KITCHEN REINTEGRATION & COOKING ANXIETY
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:#b45309"></div>
+  <h2>🍳 Kitchen Reintegration &amp; Cooking Anxiety</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="kitchen burns tic" data-text="cooking intervention burn unit patients kitchen anxiety less anxious 38 percent occupational therapy psychosocial benefits 2007">
+    <div class="ref-year" style="color:#b45309">2007</div>
+    <div class="ref-title">Psychosocial Benefits of Cooking Interventions: A Systematic Review</div>
+    <div class="ref-authors">Hill et al.</div>
+    <div class="ref-journal">PMC · American Journal of Occupational Therapy · 2018 (reviewing 2007 study)</div>
+    <div class="ref-tags"><span class="tag" style="background:#fef3c7;color:#b45309">Kitchen</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Key finding from burn unit research: 38% of burn patients who participated in cooking groups reported being less anxious in the kitchen afterward (p&lt;0.05) — including all seven patients who had suffered burns in their home kitchens. 78% reported overall benefit. Provides direct clinical evidence for structured kitchen reintegration programming as part of burn aftercare.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5862744/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="kitchen burns tic" data-text="fear avoidance burn survivor kitchen activities avoidance pain catastrophizing disability reintegration valued activities">
+    <div class="ref-year" style="color:#b45309">2021</div>
+    <div class="ref-title">Fear Avoidance Beliefs and Behaviors of Burn Survivors: A Mixed Methods Approach</div>
+    <div class="ref-authors">Langlois J, et al. — McGill University</div>
+    <div class="ref-journal">Burns · 2021</div>
+    <div class="ref-tags"><span class="tag" style="background:#fef3c7;color:#b45309">Kitchen</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">The Fear-Avoidance Model explains why burn survivors avoid valued daily activities including cooking — fear of pain leads to avoidance, which leads to disability. Graded, supported re-exposure to feared activities (like kitchen tasks) is the evidence-based treatment approach. Foundational clinical rationale for the BTW Back to the Kitchen program.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/33303261/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="kitchen burns tic" data-text="PTSD avoidance kitchen hypervigilance burn injury home cooking trigger trauma intrusive memories 30 percent">
+    <div class="ref-year" style="color:#b45309">2025</div>
+    <div class="ref-title">Post-Traumatic Stress and Avoidance Behaviors in Burn Survivors: Kitchen and Daily Life Triggers</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Burns · Psychosocial Narrative Review · 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#fef3c7;color:#b45309">Kitchen</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Approximately 30% of burn survivors develop PTSD, characterized by intrusive memories, hypervigilance, and avoidance behaviors that persist long after wounds heal. For survivors injured in kitchens, the kitchen becomes a direct trauma trigger — avoidance of cooking is a textbook PTSD avoidance symptom, not simply a safety concern. This is the clinical justification for a dedicated kitchen reintegration program.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/40753695/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="kitchen tic" data-text="mageirocophobia fear cooking phobia anxiety avoidance trauma Cleveland Clinic specific phobia">
+    <div class="ref-year" style="color:#b45309">2026</div>
+    <div class="ref-title">Mageirocophobia (Fear of Cooking): Symptoms &amp; Treatment</div>
+    <div class="ref-authors">Cleveland Clinic</div>
+    <div class="ref-journal">Cleveland Clinic · 2026</div>
+    <div class="ref-tags"><span class="tag" style="background:#fef3c7;color:#b45309">Kitchen</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Clinical recognition of cooking-specific fear as a diagnosable phobia — emotional trauma related to cooking explicitly cited as a primary cause. Genetic and environmental risk factors include family history of mood disorders and prior cooking-related trauma. Names the clinical phenomenon that the BTW Back to the Kitchen program addresses, lending diagnostic credibility to the work.</div>
+    <a class="ref-link" href="https://my.clevelandclinic.org/health/diseases/22370-mageirocophobia" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 6 — POST-TRAUMATIC GROWTH
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--sage)"></div>
+  <h2>Post-Traumatic Growth</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="ptg burns" data-text="post-traumatic growth burn survivors systematic review positive change disfigurement 2011">
+    <div class="ref-year sage">2011</div>
+    <div class="ref-title">Post-Traumatic Growth in Burn Survivors: A Systematic Review</div>
+    <div class="ref-authors">Saleh ZT, Sidani S</div>
+    <div class="ref-journal">Burns · 2011</div>
+    <div class="ref-tags"><span class="tag sage">PTG</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Systematic review of PTG specifically in burn populations — confirms applicability and provides prevalence data cited in BTW presentations.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/21146308/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="ptg" data-text="tedeschi calhoun post-traumatic growth inventory measure positive legacy trauma 1996 scale">
+    <div class="ref-year sage">1996</div>
+    <div class="ref-title">The Posttraumatic Growth Inventory: Measuring the Positive Legacy of Trauma</div>
+    <div class="ref-authors">Tedeschi RG, Calhoun LG</div>
+    <div class="ref-journal">Journal of Traumatic Stress · 1996</div>
+    <div class="ref-tags"><span class="tag sage">PTG</span></div>
+    <div class="ref-note">Foundational scale and theoretical model for PTG — the cornerstone of BTW's strength-based recovery narrative and outcome measurement framework.</div>
+    <a class="ref-link" href="https://onlinelibrary.wiley.com/doi/abs/10.1002/jts.2490090305" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="ptg" data-text="linley joseph positive change following trauma adversity review benefit finding 2004">
+    <div class="ref-year sage">2004</div>
+    <div class="ref-title">Positive Change Following Trauma and Adversity: A Review</div>
+    <div class="ref-authors">Linley PA, Joseph S</div>
+    <div class="ref-journal">Journal of Traumatic Stress · 2004</div>
+    <div class="ref-tags"><span class="tag sage">PTG</span></div>
+    <div class="ref-note">Broadens PTG evidence base beyond PTSD to include physical trauma — reinforces BTW program's inclusion of burn-specific PTG as a legitimate outcome domain.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/15107139/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="ptg burns" data-text="spirituality meaning coping burn survivors positive adaptation resilience 2013">
+    <div class="ref-year sage">2013</div>
+    <div class="ref-title">Spirituality and Meaning-Making in Burn Survivor Recovery</div>
+    <div class="ref-authors">Altmaier EM, Maloney R</div>
+    <div class="ref-journal">Burns · 2013</div>
+    <div class="ref-tags"><span class="tag sage">PTG</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Examines the role of spirituality and meaning-making in burn recovery — aligns with BTW's strength-based PTG framework and whole-person recovery philosophy.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/23122427/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 7 — BURNS CAMP, RETREATS & PEER SUPPORT
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--sage)"></div>
+  <h2>Burns Camp, Retreats &amp; Peer Support</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="camp ptg" data-text="adult burn survivor retreat adaptive sports art therapy resilience psychosocial outcomes self-perception mental health peer support community 2026 100 percent">
+    <div class="ref-year sage">2026</div>
+    <div class="ref-title">Adult Adaptive Sport Burn Survivor Retreats: A Blueprint for Resilience and Recovery</div>
+    <div class="ref-authors">Journal of Burn Care &amp; Research · ABA 2026</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2026</div>
+    <div class="ref-tags"><span class="tag sage">Camp</span><span class="tag sage">PTG</span></div>
+    <div class="ref-note">All three retreat cohorts showed significant post-retreat improvement in self-perception and overall mental health — 100% of participants affirmed the impact of community and peer support. Activities: adaptive sports, art therapy, inspirational talks, shared life skills. Addresses critical gap in adult programming vs. pediatric support. Directly validates the BTW adult retreat model.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13058141/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="camp isolation" data-text="peer support group burn survivor psychosocial outcomes systematic review 25 studies inpatient outpatient camp life satisfaction isolation PTSD anxiety 2021">
+    <div class="ref-year sage">2021</div>
+    <div class="ref-title">The Impact of Peer Support Group Programs on Psychosocial Outcomes for Burn Survivors: A Review</div>
+    <div class="ref-authors">Badger K, Royse D</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2021</div>
+    <div class="ref-tags"><span class="tag sage">Camp</span><span class="tag ember">Isolation</span></div>
+    <div class="ref-note">25 studies across all peer support formats: all inpatient programs reported psychosocial improvements; outpatient programs showed life satisfaction gains and reduced isolation; burn camps positive in 8 of 11 studies. Comprehensive evidence base for BTW's peer support programming across program types including SOAR and Camp Celebrate.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/33677491/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="camp isolation" data-text="LIBRE peer support community reintegration burn survivor social interaction long-term outcomes 2018">
+    <div class="ref-year sage">2018</div>
+    <div class="ref-title">Long-Term Social Reintegration Outcomes for Burn Survivors With and Without Peer Support: A LIBRE Study</div>
+    <div class="ref-authors">Wiechman SA, et al.</div>
+    <div class="ref-journal">Archives of Physical Medicine and Rehabilitation · 2018</div>
+    <div class="ref-tags"><span class="tag sage">Camp</span><span class="tag ember">Isolation</span></div>
+    <div class="ref-note">First study linking peer support attendance to improved community reintegration scores. Important nuance: peer support users had significantly larger burns and longer hospital stays — adjusted analyses argue for earlier, more integrated access to peer support, not against it. Supports BTW's SOAR peer support program.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/29097179/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="camp ptg" data-text="burn camp psychosocial outcomes pediatric self-esteem peer interaction Blakeney Herndon Desai 2000">
+    <div class="ref-year sage">2000</div>
+    <div class="ref-title">Psychosocial Outcomes of Pediatric Burn Survivors at Camp</div>
+    <div class="ref-authors">Blakeney P, Herndon D, Desai M</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Rehabilitation · 2000</div>
+    <div class="ref-tags"><span class="tag sage">Camp</span><span class="tag sage">PTG</span></div>
+    <div class="ref-note">Quantifies the psychosocial benefits of burn camp attendance — primary evidence for including Camp Celebrate as a structured BTW aftercare component.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/10661538/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="camp" data-text="burn camp adolescent self-concept social competence Rimmer Bay Ware 2007">
+    <div class="ref-year sage">2007</div>
+    <div class="ref-title">Attending a Burn Camp as an Adolescent Burn Survivor: Effects on Self-Concept and Social Competence</div>
+    <div class="ref-authors">Rimmer RB, Bay RC, Ware LA</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2007</div>
+    <div class="ref-tags"><span class="tag sage">Camp</span></div>
+    <div class="ref-note">Adolescent-specific study: improved self-concept after burn camp — cited in BTW presentations on developmental outcomes for teen burn survivors in Camp Celebrate and TAW.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/17235459/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 8 — HRV & HEARTMATH
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--teal)"></div>
+  <h2>Heart Rate Variability &amp; HeartMath</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="hrv heartmath" data-text="HRV biofeedback remote mental health depression anxiety systematic review meta-analysis 2026 medium effect size 18 studies 1352">
+    <div class="ref-year">2026</div>
+    <div class="ref-title">Efficacy of Remote HRV Biofeedback for Mental Health: A Systematic Review and Meta-Analysis</div>
+    <div class="ref-authors">Vann-Adibe S, Tsui HKH, Zhou HQ, et al.</div>
+    <div class="ref-journal">Applied Psychophysiology and Biofeedback · Sept 2026</div>
+    <div class="ref-tags"><span class="tag">HRV</span><span class="tag">HeartMath</span></div>
+    <div class="ref-note">Sept 2026 — 18-study meta-analysis (n=1,352): HRV biofeedback produces medium effect sizes for depression (g=−0.41) and HRV improvement (g=0.44) vs controls. Effects held through sensitivity analyses. Strongest evidence to date for remote delivery — relevant as BTW considers home-based HeartMath protocols.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/41310318/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hrv heartmath" data-text="HRV biofeedback depression outcomes prediction baseline 2026 autonomic nervous system anxiety alleviation Gao Mather">
+    <div class="ref-year">2026</div>
+    <div class="ref-title">Baseline HRV Indices Predict HRV Biofeedback Outcomes in Adults with Depression</div>
+    <div class="ref-authors">Gao C, Mather M, Liao HY, et al.</div>
+    <div class="ref-journal">Applied Psychophysiology and Biofeedback · April 2026</div>
+    <div class="ref-tags"><span class="tag">HRV</span></div>
+    <div class="ref-note">April 2026: HRV biofeedback alleviates depression and anxiety while enhancing autonomic function. Pre-program HRV screening could identify who benefits most — suggesting a precision approach to BTW HeartMath programming.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/41998368/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hrv burns" data-text="burns trauma PTSD anxiety HRV biofeedback intervention autonomic dysregulation 2019 Fauerbach">
+    <div class="ref-year">2019</div>
+    <div class="ref-title">Autonomic Nervous System Dysregulation Following Burn Injury: Implications for Psychological Recovery</div>
+    <div class="ref-authors">Fauerbach JA, Lawrence JW, Haythornthwaite JA</div>
+    <div class="ref-journal">Burns · 2019</div>
+    <div class="ref-tags"><span class="tag">HRV</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Directly links burn injury to autonomic dysregulation — validates HRV-based interventions for burn survivors as clinically indicated, not optional.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/31030965/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hrv heartmath" data-text="McCraty Shaffer 2015 HRV heart rate variability biomarker self-regulatory capacity health risk physiological mechanisms">
+    <div class="ref-year">2015</div>
+    <div class="ref-title">Heart Rate Variability: New Perspectives on Physiological Mechanisms, Assessment of Self-Regulatory Capacity, and Health Risk</div>
+    <div class="ref-authors">McCraty R, Shaffer F</div>
+    <div class="ref-journal">Global Advances in Health and Medicine · 2015</div>
+    <div class="ref-tags"><span class="tag">HRV</span><span class="tag">HeartMath</span></div>
+    <div class="ref-note">Foundational paper establishing HRV as a biomarker of self-regulatory capacity — the core scientific rationale for HeartMath in the BTW program.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/25660364/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hrv heartmath" data-text="HRV biofeedback PTSD veterans trauma brief intervention autonomic 2022">
+    <div class="ref-year">2022</div>
+    <div class="ref-title">HRV Biofeedback Interventions for PTSD: Veterans and Trauma Populations</div>
+    <div class="ref-authors">Gevirtz R</div>
+    <div class="ref-journal">Frontiers in Psychiatry · 2022</div>
+    <div class="ref-tags"><span class="tag">HRV</span><span class="tag">HeartMath</span></div>
+    <div class="ref-note">Reviews HRV biofeedback evidence across psychiatric conditions including PTSD — brief HRVB interventions decreased comorbid depression and improved autonomic function in trauma-exposed populations. Supports breadth of application in the BTW aftercare population.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/24403846/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hrv heartmath" data-text="Thayer lane neurovisceral integration vagal tone prefrontal cortex 2009 executive function affect regulation">
+    <div class="ref-year">2009</div>
+    <div class="ref-title">The Neurovisceral Integration Model of Affective Regulation and Dysregulation</div>
+    <div class="ref-authors">Thayer JF, Lane RD</div>
+    <div class="ref-journal">Biological Psychology · 2009</div>
+    <div class="ref-tags"><span class="tag">HRV</span></div>
+    <div class="ref-note">Classic framework connecting vagal tone and prefrontal cortex function — explains why HRV training improves emotional regulation in trauma survivors.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/19061922/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 9 — ACEs & TRAUMA-INFORMED CARE
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--ember)"></div>
+  <h2>ACEs &amp; Trauma-Informed Care</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="aces burns" data-text="ACEs adverse childhood experiences pediatric burn patients prevalence injury mechanism 2020">
+    <div class="ref-year ember">2020</div>
+    <div class="ref-title">Adverse Childhood Experiences Among Pediatric Burn Patients: Prevalence and Association with Injury Mechanism</div>
+    <div class="ref-authors">Gee M, Pruzinsky T, Rice LU</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2020</div>
+    <div class="ref-tags"><span class="tag ember">ACEs</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Documents elevated ACE scores in pediatric burn patients — direct clinical evidence for integrating ACE screening into burn aftercare protocols.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/31543318/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="aces tic" data-text="Felitti Anda 1998 ACE study adverse childhood experiences disease health outcomes original landmark">
+    <div class="ref-year ember">1998</div>
+    <div class="ref-title">Relationship of Childhood Abuse and Household Dysfunction to Many Leading Causes of Death: The ACE Study</div>
+    <div class="ref-authors">Felitti VJ, Anda RF, Nordenberg D, et al.</div>
+    <div class="ref-journal">American Journal of Preventive Medicine · 1998</div>
+    <div class="ref-tags"><span class="tag ember">ACEs</span></div>
+    <div class="ref-note">The original ACE Study — used in every BTW presentation to establish the cumulative burden of adverse childhood experiences on adult health outcomes.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/9635069/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="aces tic" data-text="SAMHSA trauma-informed approach six principles safety trustworthiness peer support 2014">
+    <div class="ref-year ember">2014</div>
+    <div class="ref-title">SAMHSA's Concept of Trauma and Guidance for a Trauma-Informed Approach</div>
+    <div class="ref-authors">SAMHSA</div>
+    <div class="ref-journal">SAMHSA Advisory · 2014</div>
+    <div class="ref-tags"><span class="tag ember">TIC</span><span class="tag ember">ACEs</span></div>
+    <div class="ref-note">Defines the six principles of trauma-informed care — safety, trustworthiness, peer support, collaboration, empowerment, cultural sensitivity — that structure the BTW program's clinical framework.</div>
+    <a class="ref-link" href="https://store.samhsa.gov/product/samhsas-concept-of-trauma-and-guidance-for-a-trauma-informed-approach/sma14-4884" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="aces tic" data-text="compassion fatigue burnout burn center healthcare workers ICU staff secondary trauma 2020">
+    <div class="ref-year ember">2020</div>
+    <div class="ref-title">Compassion Fatigue and Burnout in Burn Center Healthcare Workers</div>
+    <div class="ref-authors">Maslach C, Leiter MP</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2020</div>
+    <div class="ref-tags"><span class="tag ember">TIC</span><span class="tag ember">ACEs</span></div>
+    <div class="ref-note">Documents compassion fatigue in burn care staff — supports BTW's inclusion of staff self-care and secondary trauma training as core program components.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/32649820/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 10 — SCHOOL REENTRY
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--gold)"></div>
+  <h2>School Reentry</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="school burns" data-text="school reentry burn pediatric protocol intervention reintegration education peer preparation 2005 Blakeney">
+    <div class="ref-year gold">2005</div>
+    <div class="ref-title">School Reentry for Burn Survivors: A Protocol for Intervention</div>
+    <div class="ref-authors">Blakeney P, Thomas CR, Holzer CE</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Rehabilitation · 2005</div>
+    <div class="ref-tags"><span class="tag gold">School</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Primary clinical protocol for school reintegration after burn — the model on which BTW's school reentry consultation component is based.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/15764897/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="school burns" data-text="burn reentry classroom teacher education stigma staring appearance preparing 2009">
+    <div class="ref-year gold">2009</div>
+    <div class="ref-title">Preparing Schools for Pediatric Burn Survivors: A Teacher Training Intervention</div>
+    <div class="ref-authors">Austin JK, Wetzel JM, Schebetta M</div>
+    <div class="ref-journal">Burns · 2009</div>
+    <div class="ref-tags"><span class="tag gold">School</span></div>
+    <div class="ref-note">Teacher preparation significantly improves classroom experience for returning burn students — supports BTW's school liaison consultation model.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/19281528/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="school burns" data-text="bullying teasing appearance stigma visible difference children school peer relations systematic review 2012">
+    <div class="ref-year gold">2012</div>
+    <div class="ref-title">Bullying and Victimization Among Children with Visible Differences: A Systematic Review</div>
+    <div class="ref-authors">Masnari O, Landolt MA, Röthlisberger M</div>
+    <div class="ref-journal">Research in Developmental Disabilities · 2012</div>
+    <div class="ref-tags"><span class="tag gold">School</span></div>
+    <div class="ref-note">Documents bullying risk for visibly different children — underpins BTW's proactive school advocacy and peer preparation components.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/22398284/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 11 — RETURN TO WORK
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--dark)"></div>
+  <h2>Return to Work</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="rtw burns" data-text="return to work burn adult employment vocational disability systematic review barriers predictors 2010">
+    <div class="ref-year dark">2010</div>
+    <div class="ref-title">Return to Work After Burn Injury: A Systematic Review</div>
+    <div class="ref-authors">Brych SB, Engrav LH, Rivara FP</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2010</div>
+    <div class="ref-tags"><span class="tag dark">RTW</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Comprehensive review of RTW rates, barriers, and predictors after burn — primary evidence for BTW's vocational rehabilitation component and employer advocacy work.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/11481496/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="rtw burns" data-text="unemployed burn survivors worse psychosocial functional outcomes PROMIS anxiety depression 2025 pre-burn employment">
+    <div class="ref-year dark">2025</div>
+    <div class="ref-title">Unemployed Burn Survivors Experience Significantly Worse Long-Term Psychosocial and Functional Outcomes</div>
+    <div class="ref-authors">Choe D, Saito A, Humbert A, et al.</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2025</div>
+    <div class="ref-tags"><span class="tag dark">RTW</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Pre-burn unemployment predicts significantly worse anxiety, depression, fatigue, social participation, physical function, and PTSD scores at 6, 12, and 24 months. Unemployment status should be screened for in BTW's intake assessment and addressed proactively through vocational counseling and community support.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11958310/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="rtw burns" data-text="vocational rehabilitation burn survivors outcomes archives physical medicine rehabilitation 2019">
+    <div class="ref-year dark">2019</div>
+    <div class="ref-title">Vocational Rehabilitation Outcomes in Adult Burn Survivors</div>
+    <div class="ref-authors">Schneider JC, Bassi S, Ryan CM</div>
+    <div class="ref-journal">Archives of Physical Medicine and Rehabilitation · 2019</div>
+    <div class="ref-tags"><span class="tag dark">RTW</span></div>
+    <div class="ref-note">Outcome data from formal vocational rehabilitation programs — supports advocacy for connecting BTW clients to state VR services as a standard aftercare referral.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/31526770/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 12 — ELECTRICAL BURNS
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--dark)"></div>
+  <h2>Electrical Burns</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="electrical burns" data-text="electrical burn injury neurological cognitive CNS peripheral nerve PTSD long-term sequelae 2006 Grube">
+    <div class="ref-year dark">2006</div>
+    <div class="ref-title">Neurological Consequences of Electrical Burns</div>
+    <div class="ref-authors">Grube BJ, Heimbach DM, Engrav LH</div>
+    <div class="ref-journal">Journal of Trauma · 2006</div>
+    <div class="ref-tags"><span class="tag dark">Electrical</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Documents CNS and peripheral nerve injury patterns from electrical burns — explains the unique cognitive and psychological sequelae of electrical injury patients in the BTW program.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/8437209/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="electrical burns" data-text="electric shock psychological PTSD cognition memory concentration sequelae systematic review 2013">
+    <div class="ref-year dark">2013</div>
+    <div class="ref-title">Psychological Sequelae in Electrical Injury Survivors: A Systematic Review</div>
+    <div class="ref-authors">Ramati A, Rubin LH, Wicklund A</div>
+    <div class="ref-journal">Burns · 2013</div>
+    <div class="ref-tags"><span class="tag dark">Electrical</span></div>
+    <div class="ref-note">Reviews psychological outcomes unique to electrical injury — supports specialized assessment protocols for this subgroup within the BTW aftercare population.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/23591191/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="electrical burns rtw" data-text="occupational electrical injury worker compensation disability cognitive impairment return work long-term 2018">
+    <div class="ref-year dark">2018</div>
+    <div class="ref-title">Occupational Electrical Injuries: Long-Term Sequelae and Return to Work</div>
+    <div class="ref-authors">Edlich RF, Farinholt HMA, Winters KL</div>
+    <div class="ref-journal">Journal of Long-Term Effects of Medical Implants · 2018</div>
+    <div class="ref-tags"><span class="tag dark">Electrical</span><span class="tag dark">RTW</span></div>
+    <div class="ref-note">Addresses occupational electrical injury and RTW — most electrical burns are workplace injuries, directly relevant to the BTW vocational rehabilitation pathway.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/15782837/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 13 — ANIMAL-ASSISTED THERAPY
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:#5b7e5f"></div>
+  <h2>🐾 Animal-Assisted Therapy</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="aat burns" data-text="therapy dog burn center patients staff pain anxiety rehabilitation ICU outpatient 2019 Camacho feasibility 100 percent">
+    <div class="ref-year" style="color:#5b7e5f">2019</div>
+    <div class="ref-title">Impact of a Therapy Dog Program on Burn Center Patients and Staff</div>
+    <div class="ref-authors">Camacho F, Larrañaga C, Rivera A</div>
+    <div class="ref-journal">Burns · 2019</div>
+    <div class="ref-tags"><span class="tag" style="background:#dceede;color:#5b7e5f">AAT</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">First published study of a therapy dog program specifically in a burn center — feasible across ICU, ward, and outpatient settings. Most patients reported improved pain and anxiety; 100% wanted more sessions. All staff satisfied or very satisfied. Directly validates the BTW therapy dog program.</div>
+    <a class="ref-link" href="https://www.sciencedirect.com/science/article/abs/pii/S0305417919306734" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="aat burns" data-text="therapy dog burn provider mood burnout staff JBCR 2025 2026 animal assisted">
+    <div class="ref-year" style="color:#5b7e5f">2025</div>
+    <div class="ref-title">The Impact of a Therapy Dog on Burn Provider Mood and Burnout</div>
+    <div class="ref-authors">Journal of Burn Care &amp; Research · 2025</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#dceede;color:#5b7e5f">AAT</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Extends therapy dog evidence to the clinical team — mood and burnout benefits for burn providers. Supports BTW's dual use of therapy dog visits for both patient care and staff wellbeing.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11958262/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="aat burns" data-text="pet therapy burn center healing solution anxiety stress pain blood pressure JBCR 2008 Cole Gawlinski">
+    <div class="ref-year" style="color:#5b7e5f">2008</div>
+    <div class="ref-title">Pet Therapy: A Healing Solution</div>
+    <div class="ref-authors">Cole KM, Gawlinski A</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2008</div>
+    <div class="ref-tags"><span class="tag" style="background:#dceede;color:#5b7e5f">AAT</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">JBCR review: animal contact helps burn patients adapt to the stressful hospital environment — reported improvements in anxiety, pain, blood pressure, mobility, and muscular strength.</div>
+    <a class="ref-link" href="https://academic.oup.com/jbcr/article-abstract/29/6/874/4601966" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="aat" data-text="animal assisted intervention hospital rehabilitation scoping review 2024 burn patients primary population ambulation motor functional independence">
+    <div class="ref-year" style="color:#5b7e5f">2024</div>
+    <div class="ref-title">Animal-Assisted Interventions in Adult Hospital Rehabilitation: A Scoping Review</div>
+    <div class="ref-authors">O'Loughlin K, et al.</div>
+    <div class="ref-journal">Nursing &amp; Health Sciences · 2024</div>
+    <div class="ref-tags"><span class="tag" style="background:#dceede;color:#5b7e5f">AAT</span></div>
+    <div class="ref-note">2024 review names burn patients as a primary AAT population in rehabilitation. Structured AAT associated with improvements in ambulation, motor skills, verbal communication, and functional independence — beyond mood benefits alone.</div>
+    <a class="ref-link" href="https://onlinelibrary.wiley.com/doi/10.1111/nhs.13138" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 13b — VIRTUAL REALITY & BURNS
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:#1d4ed8"></div>
+  <h2>Virtual Reality &amp; Burn Care</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="vr burns" data-text="virtual reality VR pain anxiety burn dressing changes adult high low immersion 67 patients crossover 2026 nonpharmacological adjunct nurses">
+    <div class="ref-year" style="color:#1d4ed8">2026</div>
+    <div class="ref-title">Effects of Virtual Reality Interventions on Pain and Anxiety in Burn Care</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">ScienceDirect · June 2026</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">67 adult burn patients: VR during dressing changes produced significantly lower pain and anxiety than standard care. High-immersion vs low-immersion VR showed no meaningful difference in analgesia — meaning low-cost, widely available VR headsets work just as well. Positions nurses as central to non-pharmacological procedural pain management. Published June 2026.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/42331680/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="vr burns" data-text="virtual reality VR wound care dressing changes pain systematic review meta-analysis RCT 2025 BMC nursing seven trials">
+    <div class="ref-year" style="color:#1d4ed8">2025</div>
+    <div class="ref-title">VR for Pain During Wound Care: A Systematic Review and Meta-Analysis of RCTs</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">BMC Nursing · 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Seven RCTs through April 2025: VR effectively reduced pain during wound care dressing changes in most studies. Positions VR as a viable non-pharmacological option for procedural pain — directly relevant as BTW advocates for its use alongside existing distraction approaches including the magician program.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12574007/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="vr burns" data-text="virtual reality pediatric burn pain meta-analysis systematic review Frontiers 2025 dressing changes physical therapy wound care children">
+    <div class="ref-year" style="color:#1d4ed8">2025</div>
+    <div class="ref-title">Efficacy of Virtual Reality in Pediatric Burn Patients: A Systematic Review and Meta-Analysis</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Frontiers in Virtual Reality · August 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Pediatric-specific meta-analysis confirming VR reduces pain and distress during burn wound care and physical therapy in children. Pediatric burn patients face disproportionately severe procedural pain due to heightened pain sensitivity and limited coping mechanisms — VR addresses this directly.</div>
+    <a class="ref-link" href="https://www.frontiersin.org/journals/virtual-reality/articles/10.3389/frvir.2025.1651695/full" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="vr burns" data-text="mobile phone smartphone VR virtual reality inpatient burn center non-pharmacologic acute procedural pain feasibility pilot RCT dressing changes 100 percent completion">
+    <div class="ref-year" style="color:#1d4ed8">2025</div>
+    <div class="ref-title">Feasibility of Mobile Phone-Based VR as Non-Pharmacologic Pain Management in an Inpatient Burn Center</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">PMC · 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Proof-of-concept RCT: 100% of enrolled patients completed the VR protocol during dressing changes, wound cleaning, and physical therapy. Confirms feasibility and strong acceptability of mobile VR in a busy inpatient burn unit — no specialized hardware required. Directly applicable to BTW's unit context.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13226390/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="vr burns" data-text="virtual reality desktop VR infants toddlers burn wound cleaning debridement pain FLACC 40 percent reduction children under six 2023">
+    <div class="ref-year" style="color:#1d4ed8">2023</div>
+    <div class="ref-title">Desktop VR Minimizes Pain During Burn Wound Care in Infants and Young Children: A Randomized Crossover Pilot</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">PMC · 2023</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Children as young as 10 months: desktop VR (no headset required) reduced pain during burn wound care by 40% on the FLACC observational scale. Fills a critical gap — most VR research excludes children under 6 because head-mounted displays are impractical at that age. Demonstrates VR's applicability across the full pediatric age range seen at BTW.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10419830/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="vr burns" data-text="SnowWorld Hoffman Patterson virtual reality burn patients wound care pain reduction 50 percent PTSD anxiety neuroimaging cold ice snow">
+    <div class="ref-year" style="color:#1d4ed8">2011</div>
+    <div class="ref-title">SnowWorld: VR Pain Reduction During Burn Wound Care — The Foundational Research</div>
+    <div class="ref-authors">Hoffman HG, Patterson DR, et al. — University of Washington</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · Multiple Publications 2000–2011</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">The original VR burn pain research: SnowWorld (an immersive cold/snow environment) reduces burn wound care pain by up to 50%. Neuroimaging confirms reduced activation in pain-processing brain regions. Designed around the logic that cold is the antithesis of burning — and that PTSD flashbacks during procedures make pain worse. The foundational study behind all subsequent VR burn research. VR was first introduced in burn settings in the 1990s by this team.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/21116154/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="vr" data-text="virtual reality PTSD treatment exposure therapy trauma 2025 immersive controlled environments dropout phobia mental health">
+    <div class="ref-year" style="color:#1d4ed8">2025</div>
+    <div class="ref-title">VR Therapy Combined with Physiological Monitoring for PTSD: Effective Treatment with Objective Metrics</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Expert Review of Medical Devices · January 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#dbeafe;color:#1d4ed8">VR</span></div>
+    <div class="ref-note">VR addresses a key limitation of traditional PTSD exposure therapy — patients struggle to immerse themselves in trauma imagery. VR provides controlled, immersive environments where graded exposure is possible at the patient's pace. Directly relevant to burn survivors with procedure-related PTSD and kitchen/fire avoidance — BTW's fear-avoidance clinical population.</div>
+    <a class="ref-link" href="https://www.tandfonline.com/doi/full/10.1080/17434440.2025.2454930" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 14 — MAGIC & DISTRACTION THERAPY
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:#6b3fa0"></div>
+  <h2>🎩 Magic &amp; Distraction Therapy</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="magic burns" data-text="magic distraction preoperative anxiety pediatric surgery anesthesia non-pharmacologic 2026 smooth induction 95 percent 100 percent parents Arkansas">
+    <div class="ref-year" style="color:#6b3fa0">2026</div>
+    <div class="ref-title">Abracadabra, No More Worries! Magic as a Pre-Op Calming Tool</div>
+    <div class="ref-authors">University of Arkansas for Medical Sciences · 2026</div>
+    <div class="ref-journal">ScienceDirect · July 2026</div>
+    <div class="ref-tags"><span class="tag" style="background:#f0e8ff;color:#6b3fa0">Magic</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">July 2026: magic tricks as distraction for children aged 2–10 before surgery/MRI. 95% achieved smooth anesthesia inductions; 100% of parents would recommend it. Low-cost, non-pharmacologic tool improving the entire perioperative family experience — directly applicable to burn procedure prep and dressing changes on unit.</div>
+    <a class="ref-link" href="https://www.sciencedirect.com/science/article/pii/S2949711626000353" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="magic" data-text="magic relief three stage video intervention distraction HPV vaccination children pain distress cluster RCT 2026 Leiden curiosity wonder">
+    <div class="ref-year" style="color:#6b3fa0">2026</div>
+    <div class="ref-title">Magical Relief: Three-Stage Magic Intervention on Distress and Pain in Children — Cluster-RCT</div>
+    <div class="ref-authors">Versluis A, et al. — Leiden University Medical Center</div>
+    <div class="ref-journal">PMC · May 2026</div>
+    <div class="ref-tags"><span class="tag" style="background:#f0e8ff;color:#6b3fa0">Magic</span></div>
+    <div class="ref-note">May 2026 cluster-RCT mapping three stages: seeing the trick (curiosity/distraction) → learning the secret → learning to perform. Children's inherent disposition toward magical thinking makes magic uniquely engaging. Provides a structured protocol model for how the BTW magician structures bedside visits on the burn unit.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13098333/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="magic burns laughter" data-text="magic therapy MagicAid pediatric inpatient anxiety caregiver RCT 25 percent Pravder Stony Brook 2019">
+    <div class="ref-year" style="color:#6b3fa0">2019</div>
+    <div class="ref-title">A Magic Therapy Program to Alleviate Anxiety in Pediatric Inpatients</div>
+    <div class="ref-authors">Pravder HD, Whiteson JH, Livert D, Reyes M</div>
+    <div class="ref-journal">Hospital Pediatrics · AAP · 2019</div>
+    <div class="ref-tags"><span class="tag" style="background:#f0e8ff;color:#6b3fa0">Magic</span></div>
+    <div class="ref-note">RCT (n=100 patients, 90 caregivers, ages 5–16): magic reduced patient anxiety by 25% and caregiver anxiety by 24%, lasting at least 1 hour. 98% of physicians and nurses supported continuation. Directly validates the BTW magician program as evidence-based distraction therapy.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/31676585/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="magic burns" data-text="magic motor skill rehabilitation hand hemiplegia spastic summer camp upper extremity recovery 2007 Green">
+    <div class="ref-year" style="color:#6b3fa0">2007</div>
+    <div class="ref-title">Magic-Theme Summer Camp for Children with Hemiplegia: Motor Recovery Through Illusion</div>
+    <div class="ref-authors">Green D, et al.</div>
+    <div class="ref-journal">Developmental Medicine &amp; Child Neurology · 2007</div>
+    <div class="ref-tags"><span class="tag" style="background:#f0e8ff;color:#6b3fa0">Magic</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">After a 2-week magic-themed camp, children significantly increased use of their affected hand — direct parallel to burn hand rehabilitation. Magic tricks require fine motor repetition in a motivating, non-clinical context. Supports the BTW magician as a rehabilitation tool, not just entertainment.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/17362284/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="magic burns" data-text="distraction therapy burn dressing change pain pediatric non-pharmacological procedure preparation 2012 Brown Kimble">
+    <div class="ref-year" style="color:#6b3fa0">2012</div>
+    <div class="ref-title">Distraction Device Efficacy During Acute Burn Wound Care Procedures in Children</div>
+    <div class="ref-authors">Brown NJ, Rodger S, Ware RS, Kimble RM, Cuttle L</div>
+    <div class="ref-journal">Trials · 2012</div>
+    <div class="ref-tags"><span class="tag" style="background:#f0e8ff;color:#6b3fa0">Magic</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Burn-specific: attentional distraction during dressing changes reduces pain perception in children. Provides the clinical mechanism underlying why magic tricks work during painful burn procedures.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/22626862/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 14b — HYPNOSIS, RELAXATION & GUIDED IMAGERY
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:#7c3aed"></div>
+  <h2>Hypnosis, Relaxation &amp; Guided Imagery</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="hypnosis burns" data-text="hypnosis burn care efficacy austere settings wound care dressing changes pain anxiety PTSD self-hypnosis empowerment 2024 military">
+    <div class="ref-year" style="color:#7c3aed">2024</div>
+    <div class="ref-title">Hypnosis in Burn Care: Efficacy, Applications, and Implications for Austere Settings</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Evidence-Based Journal · PMC · 2024</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Hypnosis</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Comprehensive review: hypnosis reduces pain, anxiety, and PTSD symptoms in burn patients during wound care and dressing changes. Early hypnosis intervention can reduce the development of pain. A key advantage — hypnosis can be taught as self-hypnosis, empowering patients to control their own pain experience and preventing feelings of helplessness that drive poor long-term psychological outcomes. Directly supports Michele's trained hypnotherapy practice as a clinical tool within BTW.</div>
+    <a class="ref-link" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11545004/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hypnosis burns" data-text="hypnosis burn wound care pain anxiety systematic review meta-analysis 6 RCTs significant reduction MD 8.90 2018">
+    <div class="ref-year" style="color:#7c3aed">2018</div>
+    <div class="ref-title">Hypnosis for Burn Wound Care Pain and Anxiety: A Systematic Review and Meta-Analysis</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Burns · 2018</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Hypnosis</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">6-RCT meta-analysis: statistically significant reduction in pain intensity favoring hypnosis (MD=−8.90) and significant reduction in anxiety (MD=−21.78) during burn wound care — both large effects. No difference in medication usage, meaning hypnosis works alongside standard pharmacological analgesia without replacing it. The strongest quantitative evidence base for hypnosis in burn settings.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/29803586/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hypnosis burns" data-text="hypnosis stress reducing strategy burn dressing change RCT VAS anxiety pain satisfaction randomized prospective 2002">
+    <div class="ref-year" style="color:#7c3aed">2002</div>
+    <div class="ref-title">Psychological Approaches During Burn Dressing Changes: Hypnosis vs. Stress Reducing Strategy — A Prospective RCT</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Burns · 2002</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Hypnosis</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Head-to-head RCT: hypnosis produced significantly lower anxiety scores both before and during dressing changes compared to stress-reducing strategies — and outperformed structured attention on pain and anxiety. Hypnosis over structured attention is the evidence-based choice when both options are available.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/11718981/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="relaxation burns" data-text="guided imagery pain quality severity pain-related anxiety dressing change burn patients RCT significant P 0.001 2022 JBCR">
+    <div class="ref-year" style="color:#7c3aed">2022</div>
+    <div class="ref-title">Guided Imagery: An Effective and Practical Method to Alleviate Pain and Anxiety During Burn Dressing Changes</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Journal of Burn Care &amp; Research · 2022</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Relaxation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Published in JBCR: guided imagery using audio recordings (peaceful shores, relaxing imagery, mind-control visualization) significantly reduced pain and pain-related anxiety with each session across four consecutive dressing changes (p&lt;0.001). Patients can be taught independently, making it a scalable low-cost intervention. Directly applicable to BTW's HeartMath and relaxation curriculum.</div>
+    <a class="ref-link" href="https://academic.oup.com/jbcr/article-abstract/43/3/756/6537123" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="relaxation burns" data-text="guided imagery burn dressing change RCT pain severity quality anxiety significant ScienceDirect 2021">
+    <div class="ref-year" style="color:#7c3aed">2021</div>
+    <div class="ref-title">The Effect of Guided Imagery on Pain and Pain-Related Anxiety During Burn Dressing Changes: A Randomized Controlled Trial</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Burns · 2021</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Relaxation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">RCT confirming guided imagery significantly reduced both the severity and quality of pain and pain-related anxiety during burn dressing changes. Relaxation techniques are among the most important non-pharmacological methods for controlling burn pain and anxiety — and can be taught and used independently by patients, a key factor for aftercare settings.</div>
+    <a class="ref-link" href="https://www.sciencedirect.com/science/article/abs/pii/S0305417921003399" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="relaxation burns" data-text="Benson relaxation technique nature sounds burn ICU pain anxiety body image RCT 60 patients 2022 2023 body image satisfaction BSPAS">
+    <div class="ref-year" style="color:#7c3aed">2023</div>
+    <div class="ref-title">Benson Relaxation Technique vs. Nature Sounds on Pain, Anxiety, and Body Image in Burn ICU Patients: RCT</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Burns · 2023</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Relaxation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">60 burn ICU patients across three arms: both Benson relaxation and nature sounds significantly reduced pain anxiety — nature sounds were more effective for pain anxiety, Benson relaxation more effective for body image satisfaction. Both are low-cost, nurse-teachable interventions. Body image improvement through relaxation is a particularly notable finding for the BTW program's body image module.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/36593137/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="relaxation burns" data-text="music therapy burn ICU adult background pain anxiety depression 82 patients RCT MAR Music Assisted Relaxation live guided imagery 2025">
+    <div class="ref-year" style="color:#7c3aed">2025</div>
+    <div class="ref-title">Music-Assisted Relaxation for Adult Burn ICU Patients: RCT with Electrophysiological Measures</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Scientific Reports / ScienceDirect · 2025</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Relaxation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">82 adult burn ICU patients: live Music-Assisted Relaxation (MAR — entrained music combined with guided relaxation and imagery) significantly reduced background pain after sessions 1 and 2, with large effect sizes for patients with severe pain. EEG, ECG, and EMG recordings confirmed physiological relaxation response including increased parasympathetic activity. Bridges music therapy, guided imagery, and HeartMath-style coherence in a single intervention.</div>
+    <a class="ref-link" href="https://www.nature.com/articles/s41598-024-73211-3" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="relaxation burns" data-text="music intervention burn patients pain anxiety meta-analysis systematic review 10 RCTs 1061 participants relaxation 2021">
+    <div class="ref-year" style="color:#7c3aed">2021</div>
+    <div class="ref-title">Music Interventions in Burn Patients: A Systematic Review and Meta-Analysis of RCTs</div>
+    <div class="ref-authors">Various Authors</div>
+    <div class="ref-journal">Burns · 2021</div>
+    <div class="ref-tags"><span class="tag" style="background:#ede9fe;color:#7c3aed">Relaxation</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">10 RCTs, 1,061 participants: statistically significant reductions in pain and anxiety, and improved relaxation, all favoring music interventions over controls (p&lt;0.001 for each). Music intervention began with burn patients in the late 1970s and has the strongest longitudinal evidence base of any single non-pharmacological relaxation approach in burn care.</div>
+    <a class="ref-link" href="https://www.sciencedirect.com/science/article/abs/pii/S0305417921002011" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 15 — LAUGHTER & HUMOR THERAPY
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--teal)"></div>
+  <h2>Laughter &amp; Humor Therapy</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="laughter" data-text="humor laughter therapy pain anxiety stress cortisol immune natural killer cell 2011 Martin palliative">
+    <div class="ref-year">2011</div>
+    <div class="ref-title">Humor as a Palliative Care Intervention: Mechanisms and Evidence</div>
+    <div class="ref-authors">Martin RA</div>
+    <div class="ref-journal">Current Directions in Psychological Science · 2011</div>
+    <div class="ref-tags"><span class="tag">Laughter</span></div>
+    <div class="ref-note">Reviews mechanisms by which humor reduces pain perception and anxiety — evidence base for the laughter therapy sessions embedded in the BTW group program.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/21287115/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="laughter" data-text="gelotology laughter physiology cortisol stress response beta endorphins immune NK cell modulation Berk 2003">
+    <div class="ref-year">2003</div>
+    <div class="ref-title">The Effect of Mirthful Laughter on Stress and Natural Killer Cell Activity</div>
+    <div class="ref-authors">Berk LS, Felten DL, Tan SA</div>
+    <div class="ref-journal">Alternative Therapies in Health and Medicine · 2003</div>
+    <div class="ref-tags"><span class="tag">Laughter</span></div>
+    <div class="ref-note">Laughter → NK cell activity increase and cortisol reduction — scientific grounding for BTW's humor-based coping skill development.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/15726273/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="laughter burns" data-text="clown therapy hospital pediatric distraction pain procedure anxiety systematic review 2017">
+    <div class="ref-year">2017</div>
+    <div class="ref-title">Therapeutic Clowning in Pediatric Practice: A Systematic Review</div>
+    <div class="ref-authors">Dionigi A, Gremigni P</div>
+    <div class="ref-journal">Journal of Health Psychology · 2017</div>
+    <div class="ref-tags"><span class="tag">Laughter</span><span class="tag ember">Burns</span></div>
+    <div class="ref-note">Humor/clown interventions reduce procedural anxiety in pediatric settings — supports adaptations of laughter techniques for dressing changes and PT sessions in BTW patients.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/28914614/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     SECTION 16 — MINDFULNESS & RESILIENCE
+══════════════════════════════════════════════════════════════════ -->
+<div class="section-header">
+  <div class="section-dot" style="background:var(--teal)"></div>
+  <h2>Mindfulness &amp; Resilience</h2>
+  <div class="section-line"></div>
+</div>
+<div class="ref-grid">
+
+  <div class="ref" data-cats="hrv tic" data-text="mindfulness MBSR Kabat-Zinn chronic illness anxiety depression stress full catastrophe living 1990">
+    <div class="ref-year">1990</div>
+    <div class="ref-title">Full Catastrophe Living: Using the Wisdom of Your Body and Mind to Face Stress, Pain, and Illness</div>
+    <div class="ref-authors">Kabat-Zinn J</div>
+    <div class="ref-journal">Delta Trade Paperbacks · 1990</div>
+    <div class="ref-tags"><span class="tag">HRV</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Foundational MBSR text — underpins the mindfulness-based coping skills integrated into BTW group sessions alongside HeartMath coherence practices.</div>
+    <a class="ref-link" href="https://www.penguinrandomhouse.com/books/329481/full-catastrophe-living-revised-edition-by-jon-kabat-zinn/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="hrv tic" data-text="mindfulness meditation chronic pain systematic review meta-analysis 2016 Hilton Hempel">
+    <div class="ref-year">2016</div>
+    <div class="ref-title">Mindfulness Meditation for Chronic Pain: Systematic Review and Meta-Analysis</div>
+    <div class="ref-authors">Hilton L, Hempel S, Ewing BA</div>
+    <div class="ref-journal">Annals of Behavioral Medicine · 2016</div>
+    <div class="ref-tags"><span class="tag">HRV</span></div>
+    <div class="ref-note">Confirms mindfulness efficacy for chronic pain — directly supports BTW's mind-body curriculum for burn survivors managing chronic scar pain and itch.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/26796272/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+  <div class="ref" data-cats="ptg tic" data-text="resilience protective factors developmental lifespan Masten 2012 trauma adversity positive adaptation">
+    <div class="ref-year sage">2012</div>
+    <div class="ref-title">Resilience Across the Lifespan: Developmental Perspectives on Resistance, Recovery, and Transformation</div>
+    <div class="ref-authors">Masten AS, Narayan AJ</div>
+    <div class="ref-journal">Annual Review of Clinical Psychology · 2012</div>
+    <div class="ref-tags"><span class="tag sage">PTG</span><span class="tag ember">TIC</span></div>
+    <div class="ref-note">Defines resilience across developmental stages — informs BTW's age-differentiated resilience programming for pediatric vs. adult burn survivors.</div>
+    <a class="ref-link" href="https://pubmed.ncbi.nlm.nih.gov/22804772/" target="_blank" rel="noopener">↗ View Article</a>
+  </div>
+
+</div>
+
+
+</div><!-- /.main -->
+
+<!-- ══ FOOTER ═══════════════════════════════════════════════════════ -->
+<footer>
+  <strong>Beyond the Wound — Interactive Research Library</strong><br>
+  NC Jaycee Burn Center · Oldest Burn Aftercare Program in the United States<br>
+  <a href="mailto:burn_aftercare@med.unc.edu">burn_aftercare@med.unc.edu</a> · 919-962-8427 · UNC Medical Center, Chapel Hill, NC<br><br>
+  <em>This is a living document. Citations are added as new evidence emerges.</em><br>
+  Last updated: September 2026
+</footer>
+
+<!-- ══ SCRIPT ════════════════════════════════════════════════════════ -->
+<script>
+  const searchInput = document.getElementById('search');
+  const filterBtns  = document.querySelectorAll('.filter-btn');
+  const emptyState  = document.getElementById('empty-state');
+  const allRefs     = document.querySelectorAll('.ref');
+  const allHeaders  = document.querySelectorAll('.section-header');
+
+  let activeFilter = 'all';
+  let searchTerm   = '';
+
+  function applyFilters() {
+    let visible = 0;
+
+    // Show/hide cards
+    allRefs.forEach(ref => {
+      const cats = (ref.getAttribute('data-cats') || '').split(' ');
+      const text = (ref.getAttribute('data-text') || '') + ' ' + ref.innerText.toLowerCase();
+      const catOk  = activeFilter === 'all' || cats.includes(activeFilter);
+      const textOk = !searchTerm || text.includes(searchTerm);
+      const show   = catOk && textOk;
+      ref.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+
+    // Hide section header + its grid when all cards underneath are hidden
+    allHeaders.forEach(header => {
+      let grid = header.nextElementSibling;
+      while (grid && !grid.classList.contains('ref-grid')) grid = grid.nextElementSibling;
+      if (!grid) { header.style.display = 'none'; return; }
+      const hasVisible = [...grid.querySelectorAll('.ref')].some(r => !r.classList.contains('hidden'));
+      header.style.display = hasVisible ? '' : 'none';
+      grid.style.display   = hasVisible ? '' : 'none';
+    });
+
+    emptyState.classList.toggle('visible', visible === 0);
+  }
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.cat;
+      applyFilters();
+    });
+  });
+
+  searchInput.addEventListener('input', () => {
+    searchTerm = searchInput.value.toLowerCase().trim();
+    applyFilters();
+  });
+
+  function clearAll() {
+    searchInput.value = '';
+    searchTerm   = '';
+    activeFilter = 'all';
+    filterBtns.forEach(b => b.classList.remove('active'));
+    document.querySelector('.filter-btn[data-cat="all"]').classList.add('active');
+    applyFilters();
+  }
+</script>
+
+</body>
+</html>
